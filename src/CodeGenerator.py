@@ -1,9 +1,9 @@
-import json
+import yaml
 
 # генерация cpp кода вектора функций интерпретатора
 def generate_funcs_vector():
-    with open("functions.json", "r") as file:
-        data = json.load(file)
+    with open("funcs.yaml", "r") as file:
+        data = yaml.safe_load(file)
     funcs_vector = "inline static const std::vector<Function> functions = {\n"
     for func in data["functions"]:
         input = [f"ObjectType::{type}" for type in func["arguments"]]
@@ -12,7 +12,7 @@ def generate_funcs_vector():
     return funcs_vector
 
 def write_to_file(file_path, insert_place, new_text):
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding='utf-8') as file:
         lines = file.readlines()
 
     # Место для вставки
@@ -26,7 +26,7 @@ def write_to_file(file_path, insert_place, new_text):
             lines.insert(i, new_text)
             break
 
-    with open(file_path, "w") as file:
+    with open(file_path, "w", encoding='utf-8') as file:
         file.writelines(lines)
 
 write_to_file(
