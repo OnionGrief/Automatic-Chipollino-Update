@@ -1,6 +1,32 @@
+chipollino_path: ../Chipollino
+
+types:
+  NFA:
+    class: FiniteAutomaton
+    children: [DFA]
+  DFA:
+    class: FiniteAutomaton
+  Regex:
+    class: Regex
+  Int:
+    class: int
+  String:
+    class: std::string
+  Boolean:
+    class: bool
+  OptionalBool:
+    class: std::optional<bool>
+  AmbiguityValue:
+    class: FiniteAutomaton::AmbiguityValue
+  PrefixGrammar:
+    class: PrefixGrammar
+  Array:
+    class: std::vector<GeneralObject>
+  RandomRegex:
+
 functions:
  - name: Thompson
-   prog_name: 
+   prog_name: to_thompson
    return_type: NFA
    arguments: [Regex]
 
@@ -170,7 +196,7 @@ functions:
    arguments: [PrefixGrammar]
 
  - name: Bisimilar
-   prog_name: 
+   prog_name: bisimilar
    return_type: Boolean
    arguments: [NFA, NFA]
 
@@ -185,12 +211,12 @@ functions:
    arguments: [NFA]
 
  - name: Subset
-   prog_name: 
+   prog_name: subset
    return_type: Boolean
    arguments: [Regex, Regex]
 
  - name: Subset
-   prog_name: 
+   prog_name: subset
    return_type: Boolean
    arguments: [NFA, NFA]
 
