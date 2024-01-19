@@ -236,6 +236,41 @@ def add_to_typization():
     )
 
     print_diff(prev_lines, typization_path)
+    
+
+def add_to_tex_types(file_path):
+    insert_place = "% типы интерпретатора"
+    file_begin, placeholder, file_end = get_content(
+        file_path, insert_place, end_mark="\def\TypeIs"
+    )
+    for type, info in data["types"].items():
+        if "\\def\\" + type not in placeholder and info != None:
+            placeholder += f"\\def\\{type}TYPE{{\\mathtt{{{type}}}}}\n"
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_begin + placeholder + file_end)
+
+def add_to_tex_func_names(file_path):
+    insert_place = "% названия операций"
+    file_begin, placeholder, file_end = get_content(
+        file_path, insert_place, end_mark="\n% типы интерпретатора"
+    )
+    for f in data["functions"]:
+        if "\\def\\" + f["name"] not in placeholder and f["need_template"]:
+            placeholder += f"\\def\\{f['name']}{{\\mathtt{{{f['name']}}}}}\n"
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_begin + placeholder + file_end)
+
+def add_to_tex_head():
+    tex_head_path = data["chipollino_path"] + "/resources/template/head.tex"
+    with open(tex_head_path, "r", encoding="utf-8") as file:
+        prev_lines = file.readlines()
+
+    add_to_tex_func_names(tex_head_path)
+    add_to_tex_types(tex_head_path)
+    print_diff(prev_lines, tex_head_path)
+
 
 def generate_templates():
     for f in data["functions"]:
@@ -277,3 +312,5 @@ add_to_interpreter_apply_function()
 add_to_typization()
 # templates
 generate_templates()
+# head.tex
+add_to_tex_head()
