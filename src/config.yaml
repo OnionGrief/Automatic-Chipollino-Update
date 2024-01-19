@@ -8,6 +8,7 @@ types:
     class: FiniteAutomaton
   Regex:
     class: Regex
+  RandomRegex:
   Int:
     class: int
   String:
@@ -22,7 +23,6 @@ types:
     class: PrefixGrammar
   Array:
     class: std::vector<GeneralObject>
-  RandomRegex:
 
 functions:
  - name: Thompson
