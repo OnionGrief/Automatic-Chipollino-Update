@@ -59,6 +59,7 @@ functions:
    prog_name: 
    return_type: DFA
    arguments: [NFA]
+   need_template: false 
 
  - name: RemEps
    prog_name: 
@@ -79,6 +80,7 @@ functions:
    prog_name: 
    return_type: DFA
    arguments: [NFA]
+   need_template: false 
 
  - name: Reverse
    prog_name: 
