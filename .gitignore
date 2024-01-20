@@ -1,6 +1,7 @@
 # тут лежит невидимый проект
 Chipollino
 # а тут я локально тестирую
+src
 src/*.cpp
 src/test.*
 .vscode/
