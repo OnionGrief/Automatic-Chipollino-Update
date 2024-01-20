@@ -273,6 +273,42 @@ def add_to_tex_head():
     print_diff(prev_lines, tex_head_path)
 
 
+def add_readme_types(file_path):
+    insert_place = "Интерпретатор поддерживает следующие типы:"
+    file_begin, placeholder, file_end = get_content(file_path, insert_place, end_mark="\n### Синтаксические конструкции")
+    for type, info in data["types"].items():
+        if type not in placeholder and info != None:
+            placeholder += f"* {type}\n"
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_begin + placeholder + file_end)
+
+def add_readme_funcs(file_path):
+    def create_func_readme(f):
+        if len(f["arguments"]) == 1:
+            return f"- `{f['name']}: {f['arguments'][0]} -> {f['return_type']}`"
+        return f"- `{f['name']}: ({', '.join(f['arguments'])}) -> {f['return_type']}`"
+    insert_place = "Функции преобразователя"
+    file_begin, placeholder, file_end = get_content(
+        file_path, insert_place, end_mark="\n**Метод Test**"
+    )
+    for f in data["functions"]:
+        if create_func_readme(f) not in placeholder:
+            placeholder += create_func_readme(f) + "\n"
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_begin + placeholder + file_end)
+
+    
+def add_to_readme():
+    readme_path = data["chipollino_path"] + "/README.md"
+    with open(readme_path, "r", encoding="utf-8") as file:
+        prev_lines = file.readlines()
+    add_readme_types(readme_path)
+    add_readme_funcs(readme_path)
+    print_diff(prev_lines, readme_path)
+
+
 # Создаем экземпляр класса MorphAnalyzer
 morph = pymorphy2.MorphAnalyzer()
 
