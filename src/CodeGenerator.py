@@ -1,6 +1,7 @@
 import yaml
 import difflib
 import os
+import pymorphy2
 
 with open("config.yaml", "r") as file:
     data = yaml.safe_load(file)
@@ -272,6 +273,51 @@ def add_to_tex_head():
     print_diff(prev_lines, tex_head_path)
 
 
+# Создаем экземпляр класса MorphAnalyzer
+morph = pymorphy2.MorphAnalyzer()
+
+def generate_template(f):
+    file_content = f"\\section{{{f['name']}}}\n"
+    file_content += f"\\begin{{frame}}{{$\\{f['name']}\\TypeIs"
+    # хз что делать если аргументов > 2
+    if len(f["arguments"]) == 1:
+        file_content += f"\\{f['arguments'][0]}TYPE"
+    else:
+        file_content += f"\\pair{{\\{f['arguments'][0]}TYPE}}{{\\{f['arguments'][1]}TYPE}}"
+    file_content += f"\\to\\{f['return_type']}TYPE$}}\n"
+    # генерация аргументов:
+    if len(f["arguments"]) == 1:
+        type = data["types"][f["arguments"][0]]
+        file_content += f"\t{type['ru_str'].capitalize()}"
+        if type["class"] == data["types"][f["return_type"]]["class"]:
+            file_content += " до преобразования:\n"
+            file_content += f"\t%template_old{f['arguments'][0].lower()}\n\n"
+        else:
+            file_content += ":\n"
+            file_content += f"\t%template_{f['arguments'][0].lower()}\n\n"
+    elif len(f["arguments"]) == 2 and data["types"][f["arguments"][0]]["class"] == data["types"][f["arguments"][1]]["class"]:
+        type1 = data["types"][f["arguments"][0]]
+        # Склоняем прилагательное по роду
+        arg1_ru_str = morph.parse("первый")[0].inflect({morph.parse(type1["ru_str"])[0].tag.gender}).word + " " + type1["ru_str"]
+        file_content += f"\t{arg1_ru_str.capitalize()}:\n"
+        file_content += f"\t%template_{f['arguments'][0].lower()}1\n\n"
+        type2 = data["types"][f["arguments"][1]]
+        arg2_ru_str = morph.parse("вторая")[0].inflect({morph.parse(type2["ru_str"])[0].tag.gender}).word + " " + type2["ru_str"]
+        file_content += f"\t{arg2_ru_str.capitalize()}:\n"
+        file_content += f"\t%template_{f['arguments'][1].lower()}2\n\n"
+    else:
+        for i in range(len(f["arguments"])):
+            file_content += f"\t%template_{f['arguments'][i].lower()}{i+1}\n\n"
+
+    # генерация результата        
+    if len(f["arguments"]) == 1 and data["types"][f["arguments"][0]]["class"] == data["types"][f["return_type"]]["class"]:
+        file_content += f"\t{data['types'][f['return_type']]['ru_str'].capitalize()} после преобразования:\n"
+    else:
+        file_content += f"\tРезультат:\n"
+    file_content += "\t%template_result\n\n"
+    file_content += "\\end{frame}"
+    return file_content
+
 def generate_templates():
     for f in data["functions"]:
         file_path = data["chipollino_path"] + f'/resources/template/{f["template_name"]}.tex'
@@ -282,19 +328,7 @@ def generate_templates():
             with open(file_path, "r", encoding="utf-8") as file:
                 prev_lines = file.readlines()
                 
-            file_content = f"\\section{{{f['name']}}}\n"
-            file_content += f"\\begin{{frame}}{{$\\{f['name']}\\TypeIs"
-            # хз что делать если аргументов > 2
-            if len(f["arguments"]) == 1:
-                file_content += f"\\{f['arguments'][0]}TYPE"
-            else:
-                file_content += f"\\pair{{\\{f['arguments'][0]}TYPE}}{{\\{f['arguments'][1]}TYPE}}"
-            file_content += f"\\to\\{f['return_type']}TYPE$}}\n"
-            file_content += "\tДо:\n"
-            for i in range(len(f["arguments"])):
-                file_content += f"\t%template_{f['arguments'][i]}{i+1 if len(f['arguments']) != 1 else ''}\n"
-            file_content += f"\n\tРезультат:\n\t%template_result\n\n"
-            file_content += "\\end{frame}"
+            file_content = generate_template(f)
 
             with open(file_path, "w", encoding="utf-8") as file:
                 file.write(file_content)

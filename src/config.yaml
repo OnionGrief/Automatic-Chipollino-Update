@@ -4,25 +4,35 @@ types:
   NFA:
     class: FiniteAutomaton
     children: [DFA]
+    ru_str: 'автомат'
   DFA:
     class: FiniteAutomaton
+    ru_str: 'автомат'
   Regex:
     class: Regex
+    ru_str: 'регулярное выражение'
   RandomRegex:
   Int:
     class: int
+    ru_str: 'значение'
   String:
     class: std::string
+    ru_str: 'строка'
   Boolean:
     class: bool
+    ru_str: 'значение'
   OptionalBool:
     class: std::optional<bool>
+    ru_str: 'значение'
   AmbiguityValue:
     class: FiniteAutomaton::AmbiguityValue
+    ru_str: 'значение'
   PrefixGrammar:
     class: PrefixGrammar
+    ru_str: 'грамматика'
   Array:
     class: std::vector<GeneralObject>
+    ru_str: 'массив'
 
 functions:
  - name: Thompson
