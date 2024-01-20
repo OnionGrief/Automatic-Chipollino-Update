@@ -68,6 +68,7 @@ for f in data["functions"]:
         f["template_name"] += str(f["id"])
 for f in data['functions']:
     f.setdefault('need_template', True)
+    #f.setdefault('prog_name', f["name"])
 
 # генерация cpp кода вектора функций интерпретатора
 def generate_funcs_vector():
@@ -155,6 +156,41 @@ def get_content(file_path, hint, end_mark="}"):
         file_content[brace_index:],
     )
 
+def get_content_in_brackets(file_path, begin):
+    with open(file_path, "r", encoding="utf-8") as file:
+        file_content = file.read()
+    insert_index = file_content.find(begin)
+    insert_index = file_content.find('{', insert_index)
+    if insert_index == -1:
+        print("not found " + begin)
+        return
+    i = insert_index
+    count = 1
+    for s in file_content[insert_index+1:]:
+        count += 1 if s == '{' else -1 if s == '}' else 0
+        i+=1
+        if count == 0:
+            break
+
+    return (
+        file_content[:insert_index],
+        file_content[insert_index:i],
+        file_content[i:],
+    )
+
+def add_to_includes(file_path):
+    insert_place = "#include \"Objects"
+    file_begin, placeholder, file_end = get_content(
+        file_path, insert_place, end_mark="\n\n"
+    )
+    for c, info in data["classes"].items():
+        include_str = f'#include \"Objects/{info["file"]}.h\"'
+        if include_str not in placeholder:
+            placeholder += '\n' + include_str
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_begin + placeholder + file_end)
+
 def add_to_ObjectType(file_path):
     insert_place = "enum class ObjectType {"
     file_begin, placeholder, file_end = get_content(file_path, insert_place)
@@ -218,13 +254,13 @@ def generate_map_types_to_str():
     return map_str
 
 def add_to_typization():
-    typization_path = (
-        data["chipollino_path"] + "/libs/FuncLib/include/FuncLib/Typization.h"
-    )
+    typization_path = data["chipollino_path"] + "/libs/FuncLib/include/FuncLib/Typization.h"
 
     with open(typization_path, "r", encoding="utf-8") as file:
         prev_lines = file.readlines()
 
+    add_to_includes(typization_path)
+    add_to_includes(data["chipollino_path"] + "/libs/Interpreter/include/Interpreter/Interpreter.h")
     add_to_ObjectType(typization_path)
     add_to_structs(typization_path)
     add_to_GeneralObject(typization_path)
@@ -312,7 +348,11 @@ def add_to_readme():
 # Создаем экземпляр класса MorphAnalyzer
 morph = pymorphy2.MorphAnalyzer()
 
-def generate_template(f):
+def add_placeholder(array, elem):
+    array.append(elem)
+    return elem
+
+def generate_template(f, placeholders = []):
     file_content = f"\\section{{{f['name']}}}\n"
     file_content += f"\\begin{{frame}}{{$\\{f['name']}\\TypeIs"
     # хз что делать если аргументов > 2
@@ -327,30 +367,30 @@ def generate_template(f):
         file_content += f"\t{type['ru_str'].capitalize()}"
         if type["class"] == data["types"][f["return_type"]]["class"]:
             file_content += " до преобразования:\n"
-            file_content += f"\t%template_old{f['arguments'][0].lower()}\n\n"
+            file_content += f"\t%template_{add_placeholder(placeholders, 'old'+f['arguments'][0].lower())}\n\n"
         else:
             file_content += ":\n"
-            file_content += f"\t%template_{f['arguments'][0].lower()}\n\n"
+            file_content += f"\t%template_{add_placeholder(placeholders, f['arguments'][0].lower())}\n\n"
     elif len(f["arguments"]) == 2 and data["types"][f["arguments"][0]]["class"] == data["types"][f["arguments"][1]]["class"]:
         type1 = data["types"][f["arguments"][0]]
         # Склоняем прилагательное по роду
         arg1_ru_str = morph.parse("первый")[0].inflect({morph.parse(type1["ru_str"])[0].tag.gender}).word + " " + type1["ru_str"]
         file_content += f"\t{arg1_ru_str.capitalize()}:\n"
-        file_content += f"\t%template_{f['arguments'][0].lower()}1\n\n"
+        file_content += f"\t%template_{add_placeholder(placeholders, f['arguments'][0].lower() + '1')}\n\n"
         type2 = data["types"][f["arguments"][1]]
         arg2_ru_str = morph.parse("вторая")[0].inflect({morph.parse(type2["ru_str"])[0].tag.gender}).word + " " + type2["ru_str"]
         file_content += f"\t{arg2_ru_str.capitalize()}:\n"
-        file_content += f"\t%template_{f['arguments'][1].lower()}2\n\n"
+        file_content += f"\t%template_{add_placeholder(placeholders, f['arguments'][1].lower() + '2')}\n\n"
     else:
         for i in range(len(f["arguments"])):
-            file_content += f"\t%template_{f['arguments'][i].lower()}{i+1}\n\n"
+            file_content += f"\t%template_{add_placeholder(placeholders, f['arguments'][i].lower() + str(i+1))}\n\n"
 
     # генерация результата        
     if len(f["arguments"]) == 1 and data["types"][f["arguments"][0]]["class"] == data["types"][f["return_type"]]["class"]:
         file_content += f"\t{data['types'][f['return_type']]['ru_str'].capitalize()} после преобразования:\n"
     else:
         file_content += f"\tРезультат:\n"
-    file_content += "\t%template_result\n\n"
+    file_content += f"\t%template_{add_placeholder(placeholders, 'result')}\\n\n"
     file_content += "\\end{frame}"
     return file_content
 
@@ -370,17 +410,60 @@ def generate_templates():
                 file.write(file_content)
             print_diff(prev_lines, file_path)
 
-# Functions.h functions
-rewrite_in_file(
-    file_path=data["chipollino_path"] + "/libs/FuncLib/include/FuncLib/Functions.h",
-    insert_place="vector<Function> functions",
-    new_text=generate_funcs_vector(),
-)
-# interpreter.cpp apply_function()
-add_to_interpreter_apply_function()
-# Typization.h
-add_to_typization()
-# templates
-generate_templates()
-# head.tex
-add_to_tex_head()
+def add_to_classes():
+    for c, info in data["classes"].items():
+        file_path = f'{data["chipollino_path"]}/libs/Objects/include/Objects/{info["file"]}.h'
+        file_path2 = f'{data["chipollino_path"]}/libs/Objects/src/{info["file"]}.cpp'
+        with open(file_path, "r", encoding="utf-8") as file:
+            prev_lines = file.readlines()
+        with open(file_path2, "r", encoding="utf-8") as file:
+            prev_lines2 = file.readlines()
+
+        insert_place = "class " + c
+        file_begin, placeholder, file_end = get_content_in_brackets(
+            file_path, insert_place)
+        for f in data["functions"]:
+            if data["types"][f["arguments"][0]]["class"] == c and f["prog_name"] != None and f["prog_name"] not in placeholder:
+                func_str = f'\n\n{data["types"][f["return_type"]]["class"]} {c}::{f["prog_name"]}('
+                placeholder += f'\t{data["types"][f["return_type"]]["class"]} {f["prog_name"]}('
+                for i, arg in enumerate(f["arguments"][1:], 1):
+                    placeholder += f'const {data["types"][arg]["class"]}&, '
+                    func_str += f'const {data["types"][arg]["class"]}& a{i}, '
+                placeholder += 'iLogTemplate* log = nullptr) const;\n'
+                func_str += 'iLogTemplate* log) const {\n'
+                func_str += '\tif (log) {\n'
+                placeholders = []
+                generate_template(f, placeholders)
+                for i, p in enumerate(placeholders, 1):
+                    func_str += f'\t\tlog->set_parameter(\"{p}\", {"res" if i == len(placeholders) else "*this"});\n'
+                func_str += '\t}\n\treturn res;\n}'
+
+                with open(file_path2, "a", encoding="utf-8") as file:
+                    file.write(func_str)
+
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(file_begin + placeholder + file_end)
+        
+        print_diff(prev_lines, file_path)
+        print_diff(prev_lines2, file_path2)
+
+def main():
+    # Functions.h functions
+    rewrite_in_file(
+        file_path=data["chipollino_path"] + "/libs/FuncLib/include/FuncLib/Functions.h",
+        insert_place="vector<Function> functions",
+        new_text=generate_funcs_vector(),
+    )
+    # interpreter.cpp apply_function()
+    add_to_interpreter_apply_function()
+    # Typization.h
+    add_to_typization()
+    # templates
+    generate_templates()
+    # head.tex
+    add_to_tex_head()
+    # *class*.h и *.cpp
+    add_to_classes()
+
+main()
