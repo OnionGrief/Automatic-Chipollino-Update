@@ -410,6 +410,15 @@ def generate_templates():
                 file.write(file_content)
             print_diff(prev_lines, file_path)
 
+def generate_logs(f):
+    logs_str = '\tif (log) {\n'
+    placeholders = []
+    generate_template(f, placeholders)
+    for i, p in enumerate(placeholders, 1):
+        logs_str += f'\t\tlog->set_parameter(\"{p}\", {"res" if i == len(placeholders) else "*this"});\n'
+    logs_str += '\t}\n'
+    return logs_str
+
 def add_to_classes():
     for c, info in data["classes"].items():
         file_path = f'{data["chipollino_path"]}/libs/Objects/include/Objects/{info["file"]}.h'
@@ -431,12 +440,8 @@ def add_to_classes():
                     func_str += f'const {data["types"][arg]["class"]}& a{i}, '
                 placeholder += 'iLogTemplate* log = nullptr) const;\n'
                 func_str += 'iLogTemplate* log) const {\n'
-                func_str += '\tif (log) {\n'
-                placeholders = []
-                generate_template(f, placeholders)
-                for i, p in enumerate(placeholders, 1):
-                    func_str += f'\t\tlog->set_parameter(\"{p}\", {"res" if i == len(placeholders) else "*this"});\n'
-                func_str += '\t}\n\treturn res;\n}'
+                func_str += generate_logs()
+                func_str += '\treturn res;\n}'
 
                 with open(file_path2, "a", encoding="utf-8") as file:
                     file.write(func_str)
@@ -447,6 +452,12 @@ def add_to_classes():
         
         print_diff(prev_lines, file_path)
         print_diff(prev_lines2, file_path2)
+
+def generate_fast_logs(funcs):
+    for f in data["functions"]:
+        if f["name"] in funcs:
+            print(f["name"]+":")
+            print(generate_logs(f))
 
 def main():
     # Functions.h functions
@@ -467,3 +478,6 @@ def main():
     add_to_classes()
 
 main()
+
+# воспользуйтесь этим, чтобы вставить в свою функцию в бэке
+generate_fast_logs(["ToMFA"])

@@ -250,12 +250,12 @@ functions:
    arguments: [NFA]
 
  - name: Subset
-   prog_name: subset44
+   prog_name: subset
    return_type: Boolean
    arguments: [Regex, Regex]
 
  - name: Subset
-   prog_name: subset45
+   prog_name: subset
    return_type: Boolean
    arguments: [NFA, NFA]
 
