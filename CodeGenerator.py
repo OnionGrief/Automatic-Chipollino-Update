@@ -1,6 +1,7 @@
 import yaml
 import difflib
 import os
+import networkx as nx
 import pymorphy2
 
 with open("config.yaml", "r") as file:
@@ -69,6 +70,13 @@ for f in data["functions"]:
 for f in data['functions']:
     f.setdefault('need_template', True)
     #f.setdefault('prog_name', f["name"])
+# граф вложенности
+adjacency_dict = {}
+for t, info in data["types"].items():
+    if info != None and "children" in info:
+            adjacency_dict[t] = info["children"]
+# Создаём направленный граф из словаря смежности
+typesGraph = nx.DiGraph(adjacency_dict)
 
 # генерация cpp кода вектора функций интерпретатора
 def generate_funcs_vector():
@@ -141,12 +149,46 @@ def add_to_interpreter_apply_function():
                 )
     print_diff(prev_lines, interpreter_path)
 
-def get_content(file_path, hint, end_mark="}"):
+def create_AlgExpr_heir(name, h_file, cpp_file):
+    file_content = ""
+
+    with open(h_file, "w", encoding="utf-8") as file:
+        file.write(file_content)
+
+def create_AbstMachine_heir(name, h_file, cpp_file):
+    file_content = ""
+
+    with open(h_file, "w", encoding="utf-8") as file:
+        file.write(file_content)
+
+# создание новых классов
+def create_new_classes():
+    for cl, info in data["classes"].items():
+        if "extends" in info:
+            file_path = f"{data['chipollino_path']}/libs/Objects/include/Objects/{info['file']}.h"
+            file_path2 = f"{data['chipollino_path']}/libs/Objects/src/{info['file']}.cpp"
+            if not os.path.exists(file_path) or not os.path.exists(file_path2):
+                # создание файла
+                with open(file_path, "w") as file:
+                    pass
+                        
+                if info["extends"] == "AlgExpression":
+                    create_AlgExpr_heir(cl, file_path, file_path2)
+                elif info["extends"] == "AbstractMachine":
+                    create_AbstMachine_heir(cl, file_path, file_path2)
+                else: 
+                    continue
+
+                print_diff([], file_path)
+                print_diff([], file_path2)
+
+# получить часть файла от begin до end_mark
+def get_content(file_path, begin, end_mark="}"):
     with open(file_path, "r", encoding="utf-8") as file:
         file_content = file.read()
-    insert_index = file_content.find(hint)
+    insert_index = file_content.find(begin)
     if insert_index == -1:
-        print("not found " + hint)
+        print("not found " + begin)
         return
     brace_index = file_content.find(end_mark, insert_index)
 
@@ -156,6 +198,7 @@ def get_content(file_path, hint, end_mark="}"):
         file_content[brace_index:],
     )
 
+# получить часть файла от begin + { блок между скобками }
 def get_content_in_brackets(file_path, begin):
     with open(file_path, "r", encoding="utf-8") as file:
         file_content = file.read()
@@ -253,6 +296,32 @@ def generate_map_types_to_str():
     map_str += "};\n"
     return map_str
 
+def generate_map_children():
+    map_str = "inline static const std::unordered_map<ObjectType, std::vector<ObjectType>> types_children = {\n"
+    for t in data["types"]:
+        try:
+            children = list(nx.descendants(typesGraph, t))
+            if len(children) > 0:
+                childs_str = [f"ObjectType::{type}" for type in children]
+                map_str += f"\t{{ObjectType::{t}, {{{', '.join(childs_str)}}}}},\n"
+        except:
+            pass
+    map_str += "};\n"
+    return map_str
+
+def generate_map_parents():
+    map_str = "inline static const std::unordered_map<ObjectType, std::vector<ObjectType>> types_parents = {\n"
+    for t in data["types"]:
+        try:
+            children = list(nx.ancestors(typesGraph, t))
+            if len(children) > 0:
+                childs_str = [f"ObjectType::{type}" for type in children]
+                map_str += f"\t{{ObjectType::{t}, {{{', '.join(childs_str)}}}}},\n"
+        except:
+            pass
+    map_str += "};\n"
+    return map_str
+
 def add_to_typization():
     typization_path = data["chipollino_path"] + "/libs/FuncLib/include/FuncLib/Typization.h"
 
@@ -269,6 +338,18 @@ def add_to_typization():
         file_path=typization_path,
         insert_place="unordered_map<ObjectType, std::string> types_to_string",
         new_text=generate_map_types_to_str(),
+        is_logged = False
+    )
+    rewrite_in_file(
+        file_path=typization_path,
+        insert_place="types_children",
+        new_text=generate_map_children(),
+        is_logged = False
+    )
+    rewrite_in_file(
+        file_path=typization_path,
+        insert_place="types_parents",
+        new_text=generate_map_parents(),
         is_logged = False
     )
 
@@ -400,9 +481,7 @@ def generate_templates():
         if not os.path.exists(file_path) and f["need_template"]:
             # создание файла
             with open(file_path, "w") as file:
-                pass
-            with open(file_path, "r", encoding="utf-8") as file:
-                prev_lines = file.readlines()
+                prev_lines = []
                 
             file_content = generate_template(f)
 

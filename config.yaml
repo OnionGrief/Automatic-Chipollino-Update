@@ -10,12 +10,14 @@ types:
     ru_str: автомат
   MFA:
     class: MemoryFiniteAutomaton
+    children: [NFA]
     ru_str: автомат
   Regex:
     class: Regex
     ru_str: регулярное выражение
   BRefRegex:
     class: BackRefRegex
+    children: [Regex]
     ru_str: регулярное выражение
   RandomRegex:
   Int:
