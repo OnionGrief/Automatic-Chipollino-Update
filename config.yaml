@@ -345,3 +345,15 @@ functions:
    prog_name: is_acreg
    return_type: Boolean
    arguments: [BRefRegex]
+
+ - name: getNFA
+   prog_name: 
+   return_type: NFA
+   arguments: [String]
+   need_template: false 
+
+ - name: getMFA
+   prog_name: 
+   return_type: MFA
+   arguments: [String]
+   need_template: false 

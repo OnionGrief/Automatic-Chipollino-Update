@@ -113,7 +113,10 @@ def get_func_mini_head(func):
 def generate_func_handler(func):
     arg_types = func["arguments"]
     handler_str = "\t" + get_func_mini_head(func)
-    handler_str += "\t\treturn "
+    if same_input_output_types(func):
+        handler_str += "\t\t res = "
+    else:
+        handler_str += "\t\treturn "
     handler_str += f'Object{func["return_type"]}('
     if len(func["arguments"]) < 1:
         print(f"error: func {func['name']} has 0 args")
@@ -519,7 +522,7 @@ def add_to_classes():
                     func_str += f'const {data["types"][arg]["class"]}& a{i}, '
                 placeholder += 'iLogTemplate* log = nullptr) const;\n'
                 func_str += 'iLogTemplate* log) const {\n'
-                func_str += generate_logs()
+                func_str += generate_logs(f)
                 func_str += '\treturn res;\n}'
 
                 with open(file_path2, "a", encoding="utf-8") as file:
@@ -535,7 +538,7 @@ def add_to_classes():
 def generate_fast_logs(funcs):
     for f in data["functions"]:
         if f["name"] in funcs:
-            print(f["name"]+":")
+            print(f["name"]+f" ({f['arguments']}):")
             print(generate_logs(f))
 
 def main():
@@ -559,4 +562,4 @@ def main():
 main()
 
 # воспользуйтесь этим, чтобы вставить в свою функцию в бэке
-generate_fast_logs(["ToMFA"])
+generate_fast_logs(["Deterministic", "IsAcreg"])
