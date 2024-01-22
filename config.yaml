@@ -84,10 +84,15 @@ functions:
    return_type: NFA
    arguments: [Regex]
 
- - name: ToMFA
+ - name: MFA
    prog_name: to_mfa
-   arguments: [BRefRegex]
    return_type: MFA
+   arguments: [BRefRegex]
+
+ - name: MFAexpt
+   prog_name: to_mfa_additional
+   return_type: MFA
+   arguments: [ BRefRegex ]
 
  - name: Determinize
    prog_name: 
@@ -104,6 +109,11 @@ functions:
    prog_name: 
    return_type: NFA
    arguments: [NFA]
+
+ - name: RemEps
+   prog_name:
+   return_type: MFA
+   arguments: [ MFA ]
 
  - name: Linearize
    prog_name: 
@@ -122,9 +132,14 @@ functions:
    need_template: false 
 
  - name: Reverse
-   prog_name: 
+   prog_name: reverse
    return_type: NFA
    arguments: [NFA]
+
+ - name: Reverse
+   prog_name: reverse
+   return_type: BRefRegex
+   arguments: [BRefRegex]
 
  - name: Annote
    prog_name: 
@@ -141,10 +156,20 @@ functions:
    return_type: NFA
    arguments: [NFA]
 
+ - name: AddTrap
+   prog_name: add_trap_state
+   return_type: MFA
+   arguments: [ MFA ]
+
  - name: Complement
    prog_name: 
    return_type: DFA
    arguments: [DFA]
+
+ - name: Complement
+   prog_name: complement
+   return_type: MFA
+   arguments: [ MFA ]
 
  - name: RemoveTrap
    prog_name: 
@@ -251,6 +276,11 @@ functions:
    return_type: Boolean
    arguments: [NFA]
 
+ - name: Deterministic
+   prog_name: is_deterministic
+   return_type: Boolean
+   arguments: [ MFA ]
+
  - name: Subset
    prog_name: subset
    return_type: Boolean
@@ -310,3 +340,8 @@ functions:
    prog_name: 
    return_type: Boolean
    arguments: [NFA]
+
+ - name: IsAcreg
+   prog_name: is_acreg
+   return_type: Boolean
+   arguments: [BRefRegex]

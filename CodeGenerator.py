@@ -136,7 +136,7 @@ def add_to_interpreter_apply_function():
     with open(interpreter_path, "r", encoding="utf-8") as file:
         file_content = file.read()
         for func in data["functions"]:
-            if f'if (function.name == "{func["name"]}"' not in file_content: # нужен рабский труд чтобы исп-ть get_func_mini_head(func)
+            if get_func_mini_head(func) not in file_content: # нужен рабский труд чтобы исп-ть get_func_mini_head(func)
                 if same_input_output_types(func):
                     insert_place = "# place for another same types funcs"
                 else:
