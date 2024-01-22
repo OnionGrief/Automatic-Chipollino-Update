@@ -4,7 +4,7 @@ import os
 import networkx as nx
 import pymorphy2
 
-with open("config.yaml", "r") as file:
+with open("config.yaml", "r", encoding="utf-8") as file:
     data = yaml.safe_load(file)
 
 # вывод разницы версий файла
@@ -169,7 +169,7 @@ def create_new_classes():
             file_path2 = f"{data['chipollino_path']}/libs/Objects/src/{info['file']}.cpp"
             if not os.path.exists(file_path) or not os.path.exists(file_path2):
                 # создание файла
-                with open(file_path, "w") as file:
+                with open(file_path, "w", encoding="utf-8") as file:
                     pass
                         
                 if info["extends"] == "AlgExpression":
@@ -471,7 +471,7 @@ def generate_template(f, placeholders = []):
         file_content += f"\t{data['types'][f['return_type']]['ru_str'].capitalize()} после преобразования:\n"
     else:
         file_content += f"\tРезультат:\n"
-    file_content += f"\t%template_{add_placeholder(placeholders, 'result')}\\n\n"
+    file_content += f"\t%template_{add_placeholder(placeholders, 'result')}\n\n"
     file_content += "\\end{frame}"
     return file_content
 
@@ -480,7 +480,7 @@ def generate_templates():
         file_path = data["chipollino_path"] + f'/resources/template/{f["template_name"]}.tex'
         if not os.path.exists(file_path) and f["need_template"]:
             # создание файла
-            with open(file_path, "w") as file:
+            with open(file_path, "w", encoding="utf-8") as file:
                 prev_lines = []
                 
             file_content = generate_template(f)
