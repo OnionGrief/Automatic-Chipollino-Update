@@ -556,6 +556,8 @@ def main():
     generate_templates()
     # head.tex
     add_to_tex_head()
+    #readme.md
+    add_to_readme()
     # *class*.h и *.cpp
     add_to_classes()
 
