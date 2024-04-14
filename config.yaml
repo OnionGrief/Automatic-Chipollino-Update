@@ -346,6 +346,21 @@ functions:
    return_type: Boolean
    arguments: [BRefRegex]
 
+ - name: Bisimilar
+   prog_name: bisimilar
+   return_type: OptionalBool
+   arguments: [MFA, MFA]
+
+ - name: ActionBisimilar
+   prog_name: action_bisimilar
+   return_type: Boolean
+   arguments: [MFA, MFA]
+
+ - name: LiterallyBisimilar
+   prog_name: literally_bisimilar
+   return_type: Boolean
+   arguments: [MFA, MFA]
+
  - name: getNFA
    prog_name: 
    return_type: NFA
