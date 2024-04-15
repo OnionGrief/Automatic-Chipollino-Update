@@ -70,10 +70,13 @@ for f in data["functions"]:
 for f in data['functions']:
     f.setdefault('need_template', True)
     #f.setdefault('prog_name', f["name"])
+    
 # граф вложенности
 adjacency_dict = {}
 for t, info in data["types"].items():
-    if info != None and "children" in info:
+    if info is None:
+        data['types'][t] = dict()
+    elif "children" in info:
             adjacency_dict[t] = info["children"]
 # Создаём направленный граф из словаря смежности
 typesGraph = nx.DiGraph(adjacency_dict)
@@ -253,7 +256,7 @@ def add_to_structs(file_path):
         file_path, insert_place, end_mark="\n\n"
     )
     for type, info in data["types"].items():
-        if "Object" + type not in placeholder and info != None:
+        if "Object" + type not in placeholder and "class" in info:
             placeholder += f"\nstruct Object{type};"
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -265,7 +268,7 @@ def add_to_GeneralObject(file_path):
         file_path, insert_place, end_mark=">"
     )
     for type, info in data["types"].items():
-        if "Object" + type not in placeholder and info != None:
+        if "Object" + type not in placeholder and "class" in info:
             placeholder += f", Object{type}"
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -286,7 +289,7 @@ def add_to_object_definitions(file_path):
         file_path, insert_place, end_mark="\n\n"
     )
     for type, info in data["types"].items():
-        if f"({type}," not in placeholder and info != None:
+        if f"({type}," not in placeholder and "class" in info:
             placeholder += f'\nOBJECT_DEFINITION({type}, {info["class"]})'
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -365,7 +368,7 @@ def add_to_tex_types(file_path):
         file_path, insert_place, end_mark="\def\TypeIs"
     )
     for type, info in data["types"].items():
-        if "\\def\\" + type not in placeholder and info != None:
+        if "\\def\\" + type not in placeholder and "class" in info:
             placeholder += f"\\def\\{type}TYPE{{\\mathtt{{{type}}}}}\n"
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -397,7 +400,7 @@ def add_readme_types(file_path):
     insert_place = "Интерпретатор поддерживает следующие типы:"
     file_begin, placeholder, file_end = get_content(file_path, insert_place, end_mark="\n### Синтаксические конструкции")
     for type, info in data["types"].items():
-        if type not in placeholder and info != None:
+        if type not in placeholder and "class" in info:
             placeholder += f"* {type}\n"
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -563,5 +566,6 @@ def main():
 
 main()
 
+print("\n\n\n")
 # воспользуйтесь этим, чтобы вставить в свою функцию в бэке
 generate_fast_logs(["Deterministic", "IsAcreg"])

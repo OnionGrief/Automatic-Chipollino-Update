@@ -3,27 +3,32 @@ chipollino_path: ./Chipollino
 types:
   NFA:
     class: FiniteAutomaton
-    children: [DFA]
+    children: [DFA, RandomNFA]
     ru_str: автомат
   DFA:
     class: FiniteAutomaton
+    children: [RandomDFA]
     ru_str: автомат
   MFA:
     class: MemoryFiniteAutomaton
-    children: [NFA]
+    children: [NFA, RandomMFA]
     ru_str: автомат
   Regex:
     class: Regex
+    children: [RandomRegex]
     ru_str: регулярное выражение
   BRefRegex:
     class: BackRefRegex
     children: [Regex]
     ru_str: регулярное выражение
   RandomRegex:
+  RandomDFA:
+  RandomNFA:
+  RandomMFA:
   Int:
     class: int
     ru_str: значение
-  String:
+  FileName:
     class: std::string
     ru_str: строка
   Boolean:
@@ -349,11 +354,17 @@ functions:
  - name: getNFA
    prog_name: 
    return_type: NFA
-   arguments: [String]
+   arguments: [FileName]
    need_template: false 
 
  - name: getMFA
    prog_name: 
    return_type: MFA
-   arguments: [String]
+   arguments: [FileName]
+   need_template: false 
+  
+ - name: getDFA
+   prog_name: 
+   return_type: DFA
+   arguments: [FileName]
    need_template: false 
