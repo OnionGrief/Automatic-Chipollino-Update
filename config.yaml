@@ -319,6 +319,11 @@ functions:
   - name: Equal
     prog_name:
     return_type: Boolean
+    arguments: [ MFA, MFA ]
+
+  - name: Equal
+    prog_name:
+    return_type: Boolean
     arguments: [ Int, Int ]
 
   - name: Equal
@@ -369,6 +374,16 @@ functions:
   - name: MergeBisim
     prog_name: merge_bisimilar
     return_type: MFA
+    arguments: [ MFA ]
+
+  - name: Action
+    prog_name: to_action_fa
+    return_type: NFA
+    arguments: [ MFA ]
+
+  - name: Symbolic
+    prog_name: to_symbolic_fa
+    return_type: NFA
     arguments: [ MFA ]
 
   - name: getNFA
