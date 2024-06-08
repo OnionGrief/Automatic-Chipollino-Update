@@ -336,6 +336,11 @@ functions:
     return_type: Boolean
     arguments: [ Boolean, Boolean ]
 
+  - name: Equal
+    prog_name:
+    return_type: Boolean
+    arguments: [ BRefRegex, BRefRegex ]
+
   - name: OneUnambiguity
     prog_name:
     return_type: Boolean
