@@ -19,16 +19,17 @@ types:
     ru_str: регулярное выражение
   BRefRegex:
     class: BackRefRegex
-    children: [ Regex ]
+    children: [ Regex, RandomBRefRegex ]
     ru_str: регулярное выражение
   RandomRegex:
+  RandomBRefRegex:
   RandomDFA:
   RandomNFA:
   RandomMFA:
   Int:
     class: int
     ru_str: значение
-  FileName:
+  String:
     class: std::string
     ru_str: строка
   Boolean:
@@ -394,17 +395,17 @@ functions:
   - name: getNFA
     prog_name:
     return_type: NFA
-    arguments: [ FileName ]
+    arguments: [ String ]
     need_template: false
 
   - name: getMFA
     prog_name:
     return_type: MFA
-    arguments: [ FileName ]
+    arguments: [ String ]
     need_template: false
 
   - name: getDFA
     prog_name:
     return_type: DFA
-    arguments: [ FileName ]
+    arguments: [ String ]
     need_template: false
