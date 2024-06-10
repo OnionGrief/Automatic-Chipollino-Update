@@ -1,4 +1,4 @@
-chipollino_path: ./Chipollino
+chipollino_path: ../Chipollino
 
 types:
   NFA:
